@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PayFlow — Gestão de Cobranças</title>
+<style>
+.auth{position:fixed;inset:0;background:linear-gradient(135deg,#f7f3df,#f6f7fb);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+.auth.hidden{display:none}.authbox{width:min(430px,100%);background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 18px 55px rgba(20,30,50,.14)}
+.authlogo{text-align:center;font-size:28px;font-weight:900;margin-bottom:5px}.authlogo span{color:var(--accent)}.authsub{text-align:center;color:var(--muted);margin:0 0 22px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:#f2f4f7;border-radius:11px;padding:4px;margin-bottom:20px}.auth-tabs button{padding:10px;border-radius:8px;background:transparent;color:var(--muted)}.auth-tabs button.active{background:#fff;color:var(--ink);box-shadow:0 2px 8px #0001}
+.auth-error{display:none;background:#fff0f0;color:var(--danger);border:1px solid #f5cccc;padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px}.auth-info{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+.auth-role{display:grid;grid-template-columns:1fr 1fr;gap:8px}.auth-role button{padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff}.auth-role button.selected{border:2px solid var(--accent);background:#fffdf1}
+:root{--bg:#f6f7fb;--card:#fff;--ink:#172033;--muted:#697386;--line:#e5e7eb;--accent:#b58b00;--accent2:#f6e7a6;--ok:#16845b;--warn:#b7791f;--danger:#c24141;--shadow:0 8px 28px rgba(20,30,50,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit} button{cursor:pointer;border:0}
+.top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:20px}.brand span{color:var(--accent)}
+.role{display:flex;gap:8px;background:#f0f2f6;padding:4px;border-radius:12px}.role button{padding:8px 12px;border-radius:9px;background:transparent;color:var(--muted)}.role .active{background:#fff;color:var(--ink);box-shadow:0 2px 8px #0001}
+.layout{display:flex;min-height:calc(100vh - 64px)}.side{width:230px;background:#fff;border-right:1px solid var(--line);padding:20px 12px}.side button{display:block;width:100%;text-align:left;background:transparent;padding:12px;border-radius:10px;color:#4b5563;margin:3px 0}.side button.active,.side button:hover{background:#fff7cf;color:#5b4700}.main{flex:1;padding:28px;max-width:1300px;margin:auto;width:100%}
+h1{margin:0 0 6px;font-size:28px}.sub{color:var(--muted);margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.metric{font-size:27px;font-weight:800;margin-top:8px}.label{font-size:13px;color:var(--muted)}.status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.paid{background:#e7f7ef;color:var(--ok)}.pending{background:#fff6db;color:var(--warn)}.late{background:#fdeaea;color:var(--danger)}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:13px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}.table th{color:var(--muted);font-weight:600}.actions{display:flex;gap:8px;flex-wrap:wrap}.primary{background:#1d2738;color:#fff;padding:10px 14px;border-radius:10px;font-weight:700}.gold{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;font-weight:700}.ghost{background:#f2f4f7;color:#293244;padding:10px 14px;border-radius:10px}.danger{background:#fff0f0;color:var(--danger);padding:10px 14px;border-radius:10px}
+.panel{display:none}.panel.active{display:block}.two{display:grid;grid-template-columns:2fr 1fr;gap:18px}.invoice{border:1px solid var(--line);padding:18px;border-radius:14px;margin-bottom:12px;background:#fff}.invoice h3{margin:0 0 6px}.money{font-size:24px;font-weight:800}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.small{font-size:12px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:20;padding:20px}.modal.open{display:flex}.modalbox{background:#fff;width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:18px;padding:24px}.modalbox h2{margin-top:0}.method{border:1px solid var(--line);padding:13px;border-radius:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}.method.selected{border:2px solid var(--accent);background:#fffdf1}.field{margin:12px 0}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid #d8dce3;border-radius:10px;background:#fff}.notice{padding:12px;border-radius:12px;background:#fff8dd;border:1px solid #f0df9a;color:#654f00;margin:12px 0}.success{padding:16px;border-radius:12px;background:#eaf8f1;color:#126744}.chat{height:300px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fafbfc}.msg{max-width:80%;padding:9px 12px;border-radius:12px;margin:7px 0}.me{margin-left:auto;background:#fff0b8}.agent{background:#edf0f5}.search{display:flex;gap:8px;margin-bottom:14px}.search input{flex:1;padding:11px;border:1px solid var(--line);border-radius:10px}
+@media(max-width:850px){.side{width:70px}.side button{font-size:0}.side button:before{content:"•";font-size:22px}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.main{padding:18px}}
+</style>
+</head>
+<body>
+<div class="auth" id="authScreen">
+<div class="authbox">
+<div class="authlogo">Pay<span>Flow</span></div>
+<p class="authsub">Gestão simples de cobranças e pagamentos</p>
+<div class="auth-tabs" style="grid-template-columns:repeat(3,1fr)">
+<button id="cmdTab" class="active" onclick="authMode('cmd')">CMD</button>
+<button id="bankTab" onclick="authMode('bank')">Banco</button>
+<button id="nissTab" onclick="authMode('niss')">NISS</button>
+</div>
+<div id="authError" class="auth-error"></div>
+<div id="loginForm">
+<div id="cmdForm">
+<div class="notice">Autentique-se com a <b>Chave Móvel Digital</b>. Será redirecionado para o serviço oficial para confirmar a sua identidade.</div>
+<div class="field"><label>Número de telemóvel associado à CMD</label><input id="cmdPhone" placeholder="+351 9xx xxx xxx"></div>
+<div class="field"><label>PIN da CMD</label><input id="cmdPin" type="password" placeholder="PIN"></div>
+<button class="gold" style="width:100%" onclick="loginCMD()">Continuar com Chave Móvel Digital</button>
+<p class="auth-info">No produto real, este botão abrirá o fluxo oficial do Autenticação.gov. Nunca guardaremos o PIN da CMD.</p>
+</div>
+<div id="bankForm" style="display:none">
+<div class="notice">A autenticação bancária será feita no ambiente seguro do seu banco. A PayFlow não recebe a sua palavra-passe bancária.</div>
+<div class="field"><label>Escolha o banco</label><select id="bankName"><option>Banco BPI</option><option>Caixa Geral de Depósitos</option><option>Millennium bcp</option><option>Santander</option><option>ActivoBank</option><option>Outro banco</option></select></div>
+<button class="gold" style="width:100%" onclick="loginBank()">Entrar através do banco</button>
+<p class="auth-info">Protótipo: simula o redirecionamento para o banco e a confirmação da identidade.</p>
+</div>
+<div id="nissForm" style="display:none">
+<div class="notice">O NISS identifica o utilizador, mas deve ser usado com as credenciais/autenticação da Segurança Social — não como palavra-passe isolada.</div>
+<div class="field"><label>NISS</label><input id="niss" inputmode="numeric" placeholder="Ex.: 12345678901"></div>
+<div class="field"><label>Palavra-passe Segurança Social</label><input id="nissPassword" type="password" placeholder="Palavra-passe"></div>
+<button class="gold" style="width:100%" onclick="loginNISS()">Entrar com NISS</button>
+<p class="auth-info">No produto real, a autenticação deve ser feita pelo fornecedor/serviço autorizado, sem a PayFlow guardar estas credenciais.</p>
+</div>
+</div>
+<div style="text-align:center;margin:18px 0 8px"><button style="background:none;color:var(--accent);font-weight:700" onclick="authMode('register')">Ainda não tem conta PayFlow? Criar registo</button></div>
+<div id="registerForm" style="display:none">
+<div class="field"><label>Nome</label><input id="regName" placeholder="Nome completo"></div>
+<div class="field"><label>Email</label><input id="regEmail" type="email" placeholder="exemplo@email.com"></div>
+<div class="field"><label>Palavra-passe</label><input id="regPassword" type="password" placeholder="Mínimo 8 caracteres"></div>
+<div class="field"><label>Confirmar palavra-passe</label><input id="regPassword2" type="password" placeholder="Repita a palavra-passe"></div>
+<div class="field"><label>Tipo de conta</label><div class="auth-role"><button id="customerAccount" class="selected" onclick="selectAccount('customer')">👤 Cliente</button><button id="companyAccount" onclick="selectAccount('company')">🏢 Empresa</button></div></div>
+<label class="small"><input type="checkbox" id="terms"> Aceito os termos e a política de privacidade.</label>
+<button class="gold" style="width:100%;margin-top:16px" onclick="register()">Criar conta</button>
+</div>
+<div class="auth-info">Protótipo: as contas ficam guardadas apenas neste navegador.</div>
+</div></div><header class="top"><div class="brand">Pay<span>Flow</span></div><div style="display:flex;align-items:center;gap:10px"><div class="role"><button id="customerRole" class="active" onclick="setRole('customer')">Cliente</button><button id="companyRole" onclick="setRole('company')">Empresa</button></div><button class="ghost" onclick="logout()">Sair</button></div></header>
+<div class="layout">
+<aside class="side" id="customerNav">
+<button class="active" onclick="show('home',this)">🏠 Visão geral</button>
+<button onclick="show('bills',this)">🧾 Cobranças</button>
+<button onclick="show('support',this)">💬 Apoio</button>
+<button onclick="show('profile',this)">👤 Área do cliente</button>
+</aside>
+<aside class="side" id="companyNav" style="display:none">
+<button class="active" onclick="show('company',this)">📊 Dashboard</button>
+<button onclick="show('clients',this)">👥 Clientes</button>
+<button onclick="show('rules',this)">⚙️ Regras de cobrança</button>
+</aside>
+<main class="main">
+<section id="home" class="panel active">
+<h1>Olá, Ana 👋</h1><div class="sub">Aqui pode acompanhar as suas cobranças e pagamentos.</div>
+<div class="grid">
+<div class="card"><div class="label">Total em aberto</div><div class="metric">€ 1.240,00</div></div>
+<div class="card"><div class="label">Próximo vencimento</div><div class="metric">€ 420,00</div><div class="small">30/09/2026</div></div>
+<div class="card"><div class="label">Desconto disponível</div><div class="metric">3%</div><div class="small">pagamento antecipado</div></div>
+<div class="card"><div class="label">Prestações</div><div class="metric">2</div><div class="small">em curso</div></div>
+</div>
+<div class="card" style="margin-top:18px"><div class="row"><h2>Próximas cobranças</h2><button class="ghost" onclick="show('bills',document.querySelector('#customerNav button:nth-child(2)'))">Ver todas</button></div>
+<div class="invoice"><div class="row"><div><h3>Fatura #FT-2048</h3><div class="small">Empresa Exemplo · vence em 8 dias</div></div><div class="money">€ 420,00</div></div><div class="notice">Pague até 23/09 para beneficiar do desconto de 3%.</div><div class="actions"><button class="gold" onclick="openPay('FT-2048',420)">Pagar agora</button><button class="ghost" onclick="openNegotiate()">Negociar</button></div></div>
+<div class="invoice"><div class="row"><div><h3>Fatura #FT-1981</h3><div class="small">Serviços · vencida há 2 dias</div></div><div><span class="status late">Em atraso</span><div class="money">€ 820,00</div></div></div><div class="actions"><button class="gold" onclick="openPay('FT-1981',820)">Regularizar</button><button class="danger" onclick="openComplaint()">Reclamar</button></div></div>
+</div>
+</section>
+
+<section id="bills" class="panel"><h1>As minhas cobranças</h1><div class="sub">Detalhes, descontos, multas e opções de pagamento.</div>
+<div class="card"><table class="table"><thead><tr><th>Referência</th><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Estado</th><th></th></tr></thead><tbody>
+<tr><td>FT-2048</td><td>Serviços mensais</td><td>30/09/2026</td><td>€ 420,00</td><td><span class="status pending">Pendente</span></td><td><button class="gold" onclick="openPay('FT-2048',420)">Pagar</button></td></tr>
+<tr><td>FT-1981</td><td>Serviços adicionais</td><td>20/09/2026</td><td>€ 820,00</td><td><span class="status late">Em atraso</span></td><td><button class="gold" onclick="openPay('FT-1981',820)">Regularizar</button></td></tr>
+<tr><td>FT-1902</td><td>Consultoria</td><td>01/09/2026</td><td>€ 600,00</td><td><span class="status paid">Pago</span></td><td>—</td></tr>
+</tbody></table></div></section>
+
+<section id="support" class="panel"><h1>Apoio ao cliente</h1><div class="sub">Dúvidas, reclamações e pedidos associados a uma cobrança.</div>
+<div class="two"><div class="card"><div class="chat" id="chat"><div class="msg agent">Olá! Como posso ajudar?</div><div class="msg me">Quero esclarecer uma cobrança.</div><div class="msg agent">Claro. Pode indicar a referência da fatura ou escolher uma opção abaixo.</div></div><div class="field"><input id="chatInput" placeholder="Escreva a sua mensagem..."></div><div class="actions"><button class="primary" onclick="sendChat()">Enviar</button><button class="danger" onclick="openComplaint()">Abrir reclamação</button></div></div>
+<div class="card"><h3>Pedidos</h3><p><span class="status pending">#SUP-102 · Em análise</span></p><p class="small">Reclamação sobre FT-1981</p><hr style="border:0;border-top:1px solid var(--line)"><button class="ghost" onclick="toast('Histórico carregado.')">Ver histórico</button></div></div>
+</section>
+
+<section id="profile" class="panel"><h1>Área do cliente</h1><div class="sub">Dados pessoais, histórico e preferências.</div><div class="two"><div class="card"><h3>Dados</h3><p><b>Ana Silva</b><br>ana@example.pt<br>+351 9xx xxx xxx</p><button class="ghost" onclick="toast('Pedido de alteração registado.')">Editar dados</button></div><div class="card"><h3>Segurança</h3><p class="small">Autenticação: email + 2FA</p><button class="primary" onclick="toast('Configuração de 2FA aberta.')">Gerir segurança</button></div></div></section>
+
+<section id="company" class="panel"><h1>Dashboard da empresa</h1><div class="sub">Acompanhe cobranças, clientes e níveis de atraso.</div><div class="grid">
+<div class="card"><div class="label">Cobranças pendentes</div><div class="metric">€ 18.420</div></div><div class="card"><div class="label">Em atraso</div><div class="metric">€ 6.780</div></div><div class="card"><div class="label">Pagas este mês</div><div class="metric">€ 31.250</div></div><div class="card"><div class="label">Tickets abertos</div><div class="metric">14</div></div>
+</div><div class="card" style="margin-top:18px"><h2>Clientes com cobrança em atraso</h2><table class="table"><tr><th>Cliente</th><th>Faturas</th><th>Valor</th><th>Nível</th><th></th></tr><tr><td>Ana Silva</td><td>1</td><td>€ 820</td><td><span class="status late">Aviso</span></td><td><button class="ghost" onclick="show('clients',document.querySelector('#companyNav button:nth-child(2)'))">Ver cliente</button></td></tr><tr><td>João Costa</td><td>2</td><td>€ 1.460</td><td><span class="status late">Multa</span></td><td><button class="ghost" onclick="show('clients',document.querySelector('#companyNav button:nth-child(2)'))">Ver cliente</button></td></tr></table></div></section>
+
+<section id="clients" class="panel"><h1>Clientes</h1><div class="sub">Pesquisa por nome, email, NIF ou número de cliente.</div><div class="card"><div class="search"><input id="clientSearch" placeholder="Pesquisar cliente..." oninput="filterClients()"><button class="primary" onclick="toast('Pesquisa executada.')">Pesquisar</button></div><table class="table" id="clientTable"><tr><th>Cliente</th><th>NIF</th><th>Contacto</th><th>Estado</th><th></th></tr><tr><td>Ana Silva</td><td>2xx xxx xxx</td><td>ana@example.pt</td><td><span class="status late">Em atraso</span></td><td><button class="ghost" onclick="openClient()">Abrir perfil</button></td></tr><tr><td>João Costa</td><td>2xx xxx xxx</td><td>joao@example.pt</td><td><span class="status pending">Pendente</span></td><td><button class="ghost" onclick="openClient()">Abrir perfil</button></td></tr></table></div></section>
+
+<section id="rules" class="panel"><h1>Regras de cobrança</h1><div class="sub">Configuração demonstrativa dos níveis e notificações.</div><div class="card">
+<div class="invoice"><div class="row"><div><b>7 dias antes</b><div class="small">Notificação + desconto antecipado</div></div><b>3%</b></div></div>
+<div class="invoice"><div class="row"><div><b>3 dias antes</b><div class="small">Lembrete automático</div></div><span class="status pending">Notificar</span></div></div>
+<div class="invoice"><div class="row"><div><b>Último dia</b><div class="small">Aviso + botão/link de pagamento</div></div><span class="status pending">Notificar</span></div></div>
+<div class="invoice"><div class="row"><div><b>Após vencimento</b><div class="small">Nível de cobrança e multa conforme regra definida</div></div><span class="status late">Atraso</span></div></div>
+<button class="primary" onclick="toast('Regras guardadas.')">Guardar alterações</button></div></section>
+</main></div>
+
+<div class="modal" id="payModal"><div class="modalbox"><h2 id="payTitle">Pagamento</h2><div id="payBody"></div><div class="actions" style="margin-top:18px"><button class="ghost" onclick="closeModal()">Cancelar</button><button class="gold" onclick="confirmPay()">Confirmar pagamento</button></div></div></div>
+<div class="modal" id="genericModal"><div class="modalbox"><div id="genericBody"></div><div class="actions" style="margin-top:18px"><button class="ghost" onclick="closeModal()">Fechar</button></div></div></div>
+<script>
+
+let accountType='customer';
+function authMode(mode){
+ document.getElementById('loginForm').style.display=mode==='register'?'none':'block';
+ document.getElementById('registerForm').style.display=mode==='register'?'block':'none';
+ ['cmd','bank','niss'].forEach(x=>{
+   let f=document.getElementById(x+'Form'); if(f) f.style.display=(mode===x?'block':'none');
+   let t=document.getElementById(x+'Tab'); if(t) t.classList.toggle('active',mode===x);
+ });
+ clearAuthError();
+}
+function loginCMD(){
+ clearAuthError();
+ if(!document.getElementById('cmdPhone').value.trim()||!document.getElementById('cmdPin').value.trim())return authError('Introduza os dados pedidos para iniciar o fluxo CMD.');
+ // Demo only: actual app must redirect to Autenticação.gov and validate the returned assertion/token server-side.
+ enterApp({name:'Utilizador CMD',email:'cmd@utilizador.pt',type:'customer'});
+}
+function loginBank(){
+ clearAuthError();
+ let bank=document.getElementById('bankName').value;
+ // Demo only: actual app must use a compliant bank/identity provider redirect and callback.
+ alert('A abrir o ambiente seguro de autenticação do '+bank+' (simulação).');
+ enterApp({name:'Cliente Bancário',email:'bank@utilizador.pt',type:'customer'});
+}
+function loginNISS(){
+ clearAuthError();
+ let niss=document.getElementById('niss').value.trim(), p=document.getElementById('nissPassword').value;
+ if(!niss||!p)return authError('Introduza o NISS e a palavra-passe da Segurança Social.');
+ if(!/^\d{9,11}$/.test(niss))return authError('Verifique o NISS introduzido.');
+ // Demo only: actual app must authenticate through an authorized Segurança Social flow.
+ enterApp({name:'Utilizador Segurança Social',email:'niss@utilizador.pt',type:'customer'});
+}
+function selectAccount(type){
+ accountType=type;
+ document.getElementById('customerAccount').classList.toggle('selected',type==='customer');
+ document.getElementById('companyAccount').classList.toggle('selected',type==='company');
+}
+function authError(msg){let e=document.getElementById('authError');e.textContent=msg;e.style.display='block'}
+function clearAuthError(){let e=document.getElementById('authError');e.style.display='none'}
+function getAccounts(){try{return JSON.parse(localStorage.getItem('payflow_accounts')||'[]')}catch(e){return[]}}
+function register(){
+ clearAuthError();
+ let name=document.getElementById('regName').value.trim(), email=document.getElementById('regEmail').value.trim().toLowerCase();
+ let p=document.getElementById('regPassword').value, p2=document.getElementById('regPassword2').value;
+ if(!name||!email||!p||!p2)return authError('Preencha todos os campos.');
+ if(!email.includes('@'))return authError('Introduza um email válido.');
+ if(p.length<8)return authError('A palavra-passe deve ter pelo menos 8 caracteres.');
+ if(p!==p2)return authError('As palavras-passe não coincidem.');
+ if(!document.getElementById('terms').checked)return authError('Tem de aceitar os termos e a política de privacidade.');
+ let accounts=getAccounts();
+ if(accounts.some(a=>a.email===email))return authError('Já existe uma conta com este email.');
+ accounts.push({name,email,password:p,type:accountType});
+ localStorage.setItem('payflow_accounts',JSON.stringify(accounts));
+ localStorage.setItem('payflow_session',JSON.stringify({name,email,type:accountType}));
+ enterApp({name,email,type:accountType});
+}
+function login(){
+ clearAuthError();
+ let email=document.getElementById('loginEmail').value.trim().toLowerCase(), p=document.getElementById('loginPassword').value;
+ if(!email||!p)return authError('Introduza o email e a palavra-passe.');
+ let a=getAccounts().find(x=>x.email===email&&x.password===p);
+ if(!a)return authError('Email ou palavra-passe incorretos.');
+ let session={name:a.name,email:a.email,type:a.type};
+ if(document.getElementById('rememberMe').checked)localStorage.setItem('payflow_session',JSON.stringify(session));
+ enterApp(session);
+}
+function enterApp(session){
+ document.getElementById('authScreen').classList.add('hidden');
+ document.querySelector('.top').style.display='flex';
+ setRole(session.type);
+ let title=document.querySelector('#home h1'); if(title&&session.type==='customer') title.textContent='Olá, '+session.name.split(' ')[0]+' 👋';
+}
+function logout(){
+ localStorage.removeItem('payflow_session');
+ document.getElementById('authScreen').classList.remove('hidden');
+ authMode('cmd');
+ document.getElementById('loginEmail').value='';document.getElementById('loginPassword').value='';
+}
+function forgotPassword(){alert('No protótipo, o pedido de recuperação seria enviado para o email indicado.')}
+function initAuth(){
+ document.querySelector('.top').style.display='none';
+ let s=null;try{s=JSON.parse(localStorage.getItem('payflow_session')||'null')}catch(e){}
+ if(s)enterApp(s);
+}
+
+let current={ref:'',amount:0,method:'MB Way',currency:'EUR'};
+function setRole(role){document.getElementById('customerNav').style.display=role==='customer'?'block':'none';document.getElementById('companyNav').style.display=role==='company'?'block':'none';document.getElementById('customerRole').classList.toggle('active',role==='customer');document.getElementById('companyRole').classList.toggle('active',role==='company');show(role==='customer'?'home':'company',document.querySelector(role==='customer'?'#customerNav button':'#companyNav button'))}
+function show(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let nav=btn?.parentElement;nav?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));btn?.classList.add('active')}
+function openPay(ref,amount){current={ref,amount,method:'MB Way',currency:'EUR'};document.getElementById('payTitle').textContent='Pagar '+ref;document.getElementById('payBody').innerHTML=`<div class="notice">Valor base: <b>€ ${amount.toFixed(2)}</b>. Se aplicável, o desconto/multa é apresentado antes da confirmação.</div><div class="field"><label>Moeda</label><select id="currency" onchange="convert()"><option>EUR</option><option>GBP</option><option>USD</option><option>CHF</option></select></div><div id="converted" class="small">Valor a pagar: € ${amount.toFixed(2)}</div><h3>Método de pagamento</h3><div class="method selected" onclick="chooseMethod(this,'MB Way')"><span>📱 MB Way</span><b>Selecionar</b></div><div class="method" onclick="chooseMethod(this,'Cartão')"><span>💳 Cartão</span><b>Selecionar</b></div><div class="method" onclick="chooseMethod(this,'Transferência')"><span>🏦 Transferência bancária</span><b>Selecionar</b></div><div class="method" onclick="chooseMethod(this,'1-clique')"><span>⚡ Pagar com um clique</span><b>Disponível</b></div>`;document.getElementById('payModal').classList.add('open')}
+function chooseMethod(el,m){document.querySelectorAll('.method').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');current.method=m}
+function convert(){let c=document.getElementById('currency').value, rates={EUR:1,GBP:.86,USD:1.17,CHF:.92};let v=current.amount*rates[c];current.currency=c;document.getElementById('converted').innerHTML=`Valor convertido: <b>${c} ${v.toFixed(2)}</b> · taxa demonstrativa atualizada no momento da confirmação.`}
+function confirmPay(){document.getElementById('payBody').innerHTML='<div class="success"><h3>Pagamento confirmado ✓</h3><p>O estado da cobrança foi atualizado para <b>Pago</b> e a confirmação foi registada.</p></div>';document.querySelector('#payModal .actions').innerHTML='<button class="gold" onclick="closeModal()">Concluir</button>'}
+function openNegotiate(){document.getElementById('genericBody').innerHTML='<h2>Negociar cobrança</h2><p>Escolha uma opção de pagamento ou envie um pedido de negociação.</p><div class="method" onclick="toast(\'Plano de 2 prestações selecionado.\')"><span>2 prestações</span><b>€ 210,00</b></div><div class="method" onclick="toast(\'Plano de 3 prestações selecionado.\')"><span>3 prestações</span><b>€ 140,00</b></div><div class="field"><label>Proposta alternativa</label><input placeholder="Ex.: 4 prestações de € 105"></div><button class="primary" onclick="toast(\'Pedido enviado para análise.\');closeModal()">Enviar proposta</button>';document.getElementById('genericModal').classList.add('open')}
+function openComplaint(){document.getElementById('genericBody').innerHTML='<h2>Nova reclamação</h2><div class="field"><label>Referência</label><input value="FT-1981"></div><div class="field"><label>Motivo</label><select><option>Valor incorreto</option><option>Pagamento já efetuado</option><option>Outro problema</option></select></div><div class="field"><label>Mensagem</label><textarea rows="5" placeholder="Descreva o problema..."></textarea></div><button class="danger" onclick="toast(\'Reclamação registada e enviada à empresa.\');closeModal()">Submeter reclamação</button>';document.getElementById('genericModal').classList.add('open')}
+function openClient(){document.getElementById('genericBody').innerHTML='<h2>Perfil do cliente — Ana Silva</h2><p><b>Contacto:</b> ana@example.pt</p><p><b>Faturas:</b> 3 · <b>Em atraso:</b> 1</p><p><b>Histórico:</b> € 2.400 pagos · € 820 pendentes</p><p><b>Suporte:</b> 1 ticket aberto</p><button class="primary" onclick="toast(\'Relatório exportado.\')">Exportar relatório</button>';document.getElementById('genericModal').classList.add('open')}
+function closeModal(){document.querySelectorAll('.modal').forEach(x=>x.classList.remove('open'))}
+function sendChat(){let i=document.getElementById('chatInput'),v=i.value.trim();if(!v)return;document.getElementById('chat').insertAdjacentHTML('beforeend',`<div class="msg me">${v}</div><div class="msg agent">Recebido. Um agente pode acompanhar este pedido através do ticket.</div>`);i.value=''}
+function filterClients(){let q=document.getElementById('clientSearch').value.toLowerCase();document.querySelectorAll('#clientTable tr:not(:first-child)').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
+function toast(msg){alert(msg)}
+initAuth();
+</script>
+</body></html>
